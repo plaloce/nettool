@@ -1,0 +1,21 @@
+# 统一换行策略。
+#
+# 为什么需要这个文件：`启动.bat` / `打包.bat` 是 ASCII-only 的 cmd 脚本，
+# cmd.exe 对 **LF-only** 的 .bat 解析并不可靠（label / if 块尤甚）。
+# Git for Windows 默认 core.autocrlf=true 时会自动转 CRLF，但用
+# autocrlf=false / input 的人 clone 下来就是 LF ⇒ 脚本可能跑不起来。
+# 这里把规则写进仓库，任何人 clone 都得到 CRLF 的批处理文件。
+
+* text=auto
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制：禁止任何行尾转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.exe binary
+*.pyd binary
+*.zip binary
