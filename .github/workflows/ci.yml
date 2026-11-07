@@ -1,0 +1,62 @@
+name: CI
+
+# 触发策略：所有分支的 push 都跑（public 仓库 Actions 免费，
+# 功能分支上就能立刻拿到反馈，不必先合并到 main）；到 main 的 PR 也跑。
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# 最小权限：本 workflow 只读代码
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: pytest (Windows / Python 3.13)
+    runs-on: windows-latest
+    timeout-minutes: 20
+
+    env:
+      # 中文输出与断言依赖 UTF-8；Windows 默认 GBK 会让 pytest 输出乱码
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: utf-8
+      # C 层崩溃（access violation / 堆损坏）时能打印全部线程栈，
+      # 否则进程直接退出、日志里什么线索都没有
+      PYTHONFAULTHANDLER: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-timeout
+
+      - name: Show environment
+        run: |
+          python -V
+          python -c "import PySide6; print('PySide6', PySide6.__version__)"
+
+      # 本地跑测试时因沙箱限制会 --ignore 掉两个用 tmp_path 的文件；
+      # CI 上没有该限制，这里跑**全部**用例。
+      # -v：崩溃时靠"最后一条 PASSED"精确定位用例名（-q 只有点，定位不了）。
+      # --timeout：任何依赖真实网络的用例会被单独标记失败并继续跑，
+      #            不会让整轮 job 卡死到 20 分钟上限。
+      - name: Run tests
+        run: python -m pytest -v --tb=short --timeout=60 -p no:cacheprovider

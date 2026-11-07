@@ -8,6 +8,7 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 
 from PySide6.QtCore import QEvent, Qt, QTimer, Signal
+from shiboken6 import isValid
 from PySide6.QtWidgets import (
     QComboBox,
     QFrame,
@@ -496,16 +497,29 @@ class PageScan(QWidget):
         为什么用事件过滤器而不是重写 `resizeEvent`：
         需要的是**视口（viewport）**的宽度，而视口是 QScrollArea 内部对象，
         从 ScanGridWidget 或 PageScan 都拿不到它的 resize 事件。
+
+        ★ 必须先判活再解引用（2026-11-08 CI 事故）：
+        页面被回收后，Python 侧的 `self._grid_scroll` 引用可能还在，但对应的
+        **C++ 对象已经被销毁**。此时 Qt 仍会向旧 viewport 的事件过滤器派发事件，
+        一旦访问 `self._grid_scroll.viewport()` 就抛
+        `libshiboken: Internal C++ object (QScrollArea) already deleted`，
+        在 Windows runner 上进一步演变成堆损坏（`0xc0000374`）导致进程直接崩。
+        `isValid()` 判断的是 C++ 侧是否还活着，`is not None` 拦不住这种情况。
         """
-        if obj is getattr(self, "_grid_scroll", None) or (
-            getattr(self, "_grid_scroll", None) is not None
-            and obj is self._grid_scroll.viewport()
-        ):
-            if event.type() == QEvent.Type.Resize:
-                vp_w = self._grid_scroll.viewport().width()
-                # 预留垂直滚动条宽度：网格会在窄/矮窗口下出现垂直滚动条，
-                # 若不预留，网格差几像素会多出一条横向滚动条。
-                self._grid.set_available_width(vp_w - 2)
+        scroll = getattr(self, "_grid_scroll", None)
+        if scroll is None or not isValid(scroll):
+            return super().eventFilter(obj, event)
+        try:
+            if obj is scroll or obj is scroll.viewport():
+                if event.type() == QEvent.Type.Resize:
+                    vp_w = scroll.viewport().width()
+                    # 预留垂直滚动条宽度：网格会在窄/矮窗口下出现垂直滚动条，
+                    # 若不预留，网格差几像素会多出一条横向滚动条。
+                    self._grid.set_available_width(vp_w - 2)
+        except RuntimeError:
+            # 判活与解引用之间存在极短窗口期的销毁竞态；静默降级即可，
+            # 绝不能让异常从 Qt 的 C++ 回调里穿出去（会直接带崩进程）。
+            pass
         return super().eventFilter(obj, event)
 
     # ------------------------------------------------------------------ #
@@ -932,12 +946,16 @@ class PageScan(QWidget):
         if not self._adapters:
             self.load_adapters()
 
-    def shutdown(self) -> None:
-        """关闭时停止扫描、动画与线程池。"""
+    def shutdown(self, wait: bool = False) -> None:
+        """关闭时停止扫描、动画与线程池。
+
+        `wait=True` 用于测试清理：必须等工作线程退出后再销毁控件，
+        否则线程回调到已删除的 QWidget 会 access violation（见 conftest）。
+        """
         if self._scanner.running:
             self._scanner.stop()
         self._grid.stop_pulse()
         try:
-            self._pool.shutdown(wait=False, cancel_futures=True)
+            self._pool.shutdown(wait=wait, cancel_futures=True)
         except TypeError:
-            self._pool.shutdown(wait=False)
+            self._pool.shutdown(wait=wait)

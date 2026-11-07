@@ -1,5 +1,12 @@
 # NetTool 运行依赖（刻意保持极简：仅 PySide6）
-PySide6>=6.7,<7
+#
+# ⚠️ 上限刻意停在 6.12 之前（2026-11-08 实测结论）：
+#    PySide6 6.12.0 在 Windows + Python 3.13 下，测试进程会在跑完约 190 个用例后
+#    随机崩溃（access violation / 0xc0000374 堆损坏，崩点每次不同），
+#    日志里伴随 "Internal C++ object (QScrollArea) already deleted"。
+#    同一份代码在 6.11.2 上 264 个用例全绿，GitHub Actions 上连续两轮稳定。
+#    等上游修复并本地复验通过后，再放开到 <7。
+PySide6>=6.7,<6.12
 
 # 打包（开发期可选，不装也能跑 python main.py）
 # pyinstaller>=6.0

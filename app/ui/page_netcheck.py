@@ -730,13 +730,18 @@ class PageNetCheck(QWidget):
         if self._result is None:
             self.on_refresh()
 
-    def shutdown(self) -> None:
-        """关闭时停止线程池，无残留进程。"""
+    def shutdown(self, wait: bool = False) -> None:
+        """关闭时停止线程池，无残留进程。
+
+        `wait=True` 会阻塞到所有在途任务结束 —— 关窗时用默认的 `False`
+        （不卡界面），**测试清理时必须传 True**：工作线程一旦在控件销毁后
+        触发 `Signal.emit()`，PySide6 会直接 access violation 带崩进程。
+        """
         for pool in (self._pool, self._site_pool, self._src_pool, self._favicon_pool):
             try:
-                pool.shutdown(wait=False, cancel_futures=True)
+                pool.shutdown(wait=wait, cancel_futures=True)
             except TypeError:               # 兜底：老版本 ThreadPoolExecutor 无 cancel_futures
-                pool.shutdown(wait=False)
+                pool.shutdown(wait=wait)
 
     # ------------------------------------------------------------------ #
     # 检测

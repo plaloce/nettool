@@ -502,12 +502,16 @@ class PagePing(QWidget):
     # ------------------------------------------------------------------ #
     # 生命周期
     # ------------------------------------------------------------------ #
-    def shutdown(self) -> None:
-        """关闭时停止计时器、ping 任务与线程池。"""
+    def shutdown(self, wait: bool = False) -> None:
+        """关闭时停止计时器、ping 任务与线程池。
+
+        `wait=True` 用于测试清理：必须等工作线程退出后再销毁控件，
+        否则线程回调到已删除的 QWidget 会 access violation（见 conftest）。
+        """
         self._timer.stop()
         self._ping.cancel()
-        self._ping.shutdown(wait=False)
+        self._ping.shutdown(wait=wait)
         try:
-            self._pool.shutdown(wait=False, cancel_futures=True)
+            self._pool.shutdown(wait=wait, cancel_futures=True)
         except TypeError:
-            self._pool.shutdown(wait=False)
+            self._pool.shutdown(wait=wait)

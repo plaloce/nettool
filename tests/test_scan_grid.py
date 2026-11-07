@@ -133,3 +133,43 @@ def test_cell_at_bounds(qapp):
     assert g.cell_at(253) is not None
     assert g.cell_at(254) is None
     assert g.cell_at(-1) is None
+
+
+# --------------------------------------------------------------------------- #
+# PageScan 的事件过滤器必须能扛住「C++ 对象已销毁、Python 引用还在」
+# --------------------------------------------------------------------------- #
+def test_page_scan_event_filter_survives_deleted_scroll_area(qapp):
+    """回归守卫（2026-11-08 CI 事故）。
+
+    现象：GitHub 的 Windows runner 上测试进程堆损坏退出（0xc0000374），
+    日志里反复出现
+        RuntimeError: libshiboken: Internal C++ object (PySide6.QtWidgets.QScrollArea) already deleted
+    根因：`PageScan.eventFilter` 只用 `is not None` 判断 `_grid_scroll`，
+    拦不住「Python 包装对象还在、C++ 对象已删」的状态 —— 页面被回收后
+    Qt 仍会向旧 viewport 的过滤器派发事件。
+
+    这里用 `shiboken6.delete()` 强制只销毁 C++ 侧，精确复现该状态。
+
+    注意：传给 eventFilter 的 `obj` 用一个**有效**控件（这里用 page 自身）——
+    真实场景中 Qt 派发的 obj 一定有效（事件来自它），失效的是 `self._grid_scroll`。
+    若把已删对象当 obj 传进去，连 `QWidget.eventFilter` 自己都会抛异常，
+    那测的就不是我们要修的那条路径了。
+    """
+    from PySide6.QtCore import QEvent
+    from shiboken6 import delete, isValid
+
+    from app.netsh_service import NetshService
+    from app.scanner import ScannerService
+    from app.ui.page_scan import PageScan
+
+    page = PageScan(ScannerService(), NetshService())
+    scroll = page._grid_scroll
+    assert isValid(scroll), "构造后滚动区应有效"
+
+    delete(scroll)                      # 只删 C++ 对象，Python 引用保留
+    assert not isValid(scroll), "delete() 后 isValid 必须为 False"
+
+    # 修复前：这一行在访问 self._grid_scroll.viewport() 时抛 RuntimeError，
+    # 而异常从 Qt 的 C++ 回调穿出去会造成堆损坏、进程直接崩。
+    page.eventFilter(page, QEvent(QEvent.Type.Resize))
+    page.eventFilter(page, QEvent(QEvent.Type.Show))
