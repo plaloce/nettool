@@ -59,6 +59,44 @@ python -m PyInstaller --noconfirm --clean NetTool.spec
 > 配置文件写入 `%APPDATA%\NetTool\profiles.json`，**与 exe 所在目录无关**，
 > 因此 onefile 打包后不会写进临时解压目录。
 
+### 打包后校验（发布前必做）
+
+**`dist\NetTool.exe` 生成成功不等于能用**：版本资源可能没挂上、`--exec-netsh` 链路可能断、
+产物的校验和可能与你要上传的附件对不上。用同一个解释器跑一次校验脚本：
+
+```bash
+python tools/release_check.py
+```
+
+预期输出（版本号应等于 `app/constants.py` 的 `APP_VERSION`）：
+
+```
+ProductName     = 'NetTool'
+FileDescription = 'NetTool · 网络配置切换与连通性诊断'
+FileVersion     = '1.2.1.0'
+ProductVersion  = '1.2.1.0'
+LegalCopyright  = 'Copyright (c) 2026 plaloce. MIT License.'
+SizeMB          = 44.7
+SHA256          = <64 位十六进制>
+业务链路        = rc 0 | ok True | stdout 行数 N
+```
+
+逐项判读：
+
+| 字段 | 通过标准 | 不通过的常见原因 |
+|---|---|---|
+| `ProductName` / `FileDescription` | 与 `app/constants.py` 的命名一致 | `NetTool.spec` 漏了 `version='version_info.txt'` |
+| `FileVersion` / `ProductVersion` | 等于 `APP_VERSION` 加 `.0` | 改版本时漏改 `version_info.txt` 的四处 |
+| `SizeMB` | 落在 40–50 MB 区间 | UPX 没生效，或 spec 的 `hiddenimports` 漏了 `app.*` 模块 |
+| `SHA256` | 记为发布用的校验和 | —— |
+| `业务链路` | `rc 0` + `ok True` + 行数 > 0 | `--exec-netsh` 参数、`_validate_cmds()` 或提权子进程出错 |
+
+若走 GitHub Release，上传后把 `SHA256` 与附件页显示的 digest 对照一次——两者一致才说明上传无损。
+脚本也接受自定义路径：`python tools/release_check.py D:\somewhere\NetTool.exe`。
+
+> ⚠️ 打包日志建议重定向到 `build\`（如 `> build\_build.log`）。放在项目根会被
+> `tests/test_repo_hygiene.py` 扫到本机绝对路径而判定失败。
+
 ---
 
 ## 3. 功能概览
@@ -132,7 +170,7 @@ nettool\
 │       ├── page_netcheck.py # 页面四
 │       └── main_window.py   # 主窗口
 ├── tests/                   # 单元测试 + GUI 冒烟测试
-├── tools/                   # 开发期辅助脚本（截图 / 几何探针 / 审计）
+├── tools/                   # 开发期辅助脚本（截图 / 几何探针 / 审计 / 发布前校验 release_check.py）
 └── internal/                # 内部资料：PRD / 架构 / 原型 / 测试记录（已 gitignore，不开源）
 ```
 
