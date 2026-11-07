@@ -1,6 +1,8 @@
-# NetTool · Windows 本地网络测试管理工具
+# NetTool · 网络配置切换与连通性诊断
 
-一款 Windows 桌面端的轻量网络运维助手，把「改 IP/DNS、扫局域网、ping 诊断」三件日常网络调试高频操作，收进一个界面美观、操作极简的单文件小程序。
+一款 Windows 桌面端的轻量网络运维助手，把「切换 IP/DNS 方案、扫局域网在线设备、ping 诊断、连通性体检」四件日常高频操作，收进一个界面简洁、操作极简的单文件小程序。
+
+> NetTool is a lightweight Windows network toolbox — one-click IP/DNS profile switching, LAN discovery, ping and connectivity diagnostics. Single-file exe, PySide6 GUI.
 
 - **技术栈**：Python 3.13 + PySide6 (Qt6) + QSS 深色主题
 - **唯一运行依赖**：`PySide6`
@@ -99,6 +101,7 @@ C:\code\network\
 ├── main.py                  # 入口（GUI + 提权子进程双入口）
 ├── requirements.txt         # 依赖声明（仅 PySide6）
 ├── NetTool.spec             # PyInstaller 打包配置
+├── version_info.txt         # exe 版本资源（属性页的产品名/副标题，版本号与 APP_VERSION 同步）
 ├── 启动.bat / 打包.bat       # 一键启动 / 打包脚本
 ├── README.md / LICENSE      # 对外文档与开源协议
 ├── .gitignore               # 忽略构建产物、缓存与 internal/

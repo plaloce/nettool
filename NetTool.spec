@@ -102,5 +102,8 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    # 版本资源：exe 属性页显示统一的产品名 / 副标题（版本号须与 APP_VERSION 一致，
+    # 守卫见 tests/test_naming.py）
+    version='version_info.txt',
     # icon='resources/nettool.ico',   # 图标待设计，暂不设置（U8）
 )

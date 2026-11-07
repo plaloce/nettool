@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (
 
 from app.constants import (
     APP_NAME,
+    APP_TAGLINE,
+    APP_TITLE,
     APP_VERSION,
     SIDEBAR_WIDTH,
 )
@@ -33,10 +35,23 @@ class Sidebar(QFrame):
         root.setContentsMargins(16, 16, 16, 16)
         root.setSpacing(8)
 
-        # 品牌标题
+        # 品牌标题 + 副标题（副标题写死在同一个小竖排里，不改外层 spacing，
+        # 否则品牌与导航按钮之间的间距会被撑开）
+        brand_box = QVBoxLayout()
+        brand_box.setContentsMargins(0, 0, 0, 0)
+        brand_box.setSpacing(2)
+
         brand = QLabel(APP_NAME)
         brand.setObjectName("brandTitle")
-        root.addWidget(brand)
+        brand.setToolTip(APP_TITLE)
+        brand_box.addWidget(brand)
+
+        brand_sub = QLabel(APP_TAGLINE)
+        brand_sub.setObjectName("brandSub")
+        brand_sub.setToolTip(APP_TITLE)
+        brand_box.addWidget(brand_sub)
+
+        root.addLayout(brand_box)
 
         # 分隔线
         root.addWidget(self._hline())

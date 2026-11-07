@@ -47,6 +47,7 @@ QToolTip {
     border-right: 1px solid $border_default;
 }
 #brandTitle { color: $text_primary; font-size: 18px; font-weight: 600; }
+#brandSub { color: $text_secondary; font-size: 11px; min-height: 15px; }
 #versionLabel { color: $text_secondary; font-size: 12px; }
 #permBadge { color: $text_secondary; font-size: 12px; }
 #permBadge[elevated="true"] { color: $success; }

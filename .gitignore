@@ -29,3 +29,4 @@ internal/
 
 # ---- 工具运行输出（探针结果等，可随时重新生成）----
 tools/*.txt
+tools/shots/
