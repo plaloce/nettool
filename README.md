@@ -97,7 +97,7 @@ python -m PyInstaller --noconfirm --clean NetTool.spec
 ## 4. 目录结构
 
 ```
-C:\code\network\
+nettool\
 ├── main.py                  # 入口（GUI + 提权子进程双入口）
 ├── requirements.txt         # 依赖声明（仅 PySide6）
 ├── NetTool.spec             # PyInstaller 打包配置

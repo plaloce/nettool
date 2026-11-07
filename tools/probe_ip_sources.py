@@ -17,8 +17,8 @@ IP 交叉验证源可用性探测器
 
 用法（在你自己的命令行里跑，不要用代理环境）：
     python tools\\probe_ip_sources.py
-或在项目里任选解释器：
-    C:\\Program Files\\Python311\\python.exe tools\\probe_ip_sources.py
+若 PATH 里的 python 没装所需环境，也可直接指定解释器全路径：
+    <你的 python.exe 完整路径> tools\\probe_ip_sources.py
 
 输出
 ----
