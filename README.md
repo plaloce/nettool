@@ -73,8 +73,8 @@ python tools/release_check.py
 ```
 ProductName     = 'NetTool'
 FileDescription = 'NetTool · 网络配置切换与连通性诊断'
-FileVersion     = '1.2.1.0'
-ProductVersion  = '1.2.1.0'
+FileVersion     = '1.2.2.0'
+ProductVersion  = '1.2.2.0'
 LegalCopyright  = 'Copyright (c) 2026 plaloce. MIT License.'
 SizeMB          = 44.7
 SHA256          = <64 位十六进制>

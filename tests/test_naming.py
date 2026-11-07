@@ -4,7 +4,7 @@
     显示名   APP_NAME        = "NetTool"
     副标题   APP_TAGLINE     = "网络配置切换与连通性诊断"
     标题     APP_TITLE       = "NetTool · 网络配置切换与连通性诊断"（README H1 / exe 属性）
-    窗口标题 APP_WINDOW_TITLE = "NetTool · 网络配置切换与连通性诊断 v1.2.1"
+    窗口标题 APP_WINDOW_TITLE = "NetTool · 网络配置切换与连通性诊断 v1.2.2"
 
 三条用户实拍反馈固化成守卫：
 1. 标题栏曾出现**两个** "NetTool"（Qt 会把 applicationDisplayName 追加到标题后）

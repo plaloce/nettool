@@ -11,7 +11,7 @@ APP_NAME: str = "NetTool"
 # 副标题（tagline）：对外唯一的定位描述，窗口标题 / 侧栏 / README / exe 属性
 # 全部由它派生，改文案只改这一行（守卫 tests/test_naming.py 锁死一致性）。
 APP_TAGLINE: str = "网络配置切换与连通性诊断"
-APP_VERSION: str = "1.2.1"
+APP_VERSION: str = "1.2.2"
 APP_TITLE: str = f"{APP_NAME} · {APP_TAGLINE}"
 # 窗口标题栏：名字 + 副标题 + 版本号。
 # ⚠️ Qt 会在这个标题后面再追加 `applicationDisplayName`（形如 " - NetTool"），
