@@ -239,7 +239,7 @@ class PageNetCheck(QWidget):
     def _build_ui(self) -> None:
         root = QVBoxLayout(self)
         # 页边距 上下 16+10 共 26px（★带 QSS 实测 hint 727 > 可用 695，收紧边距换余量，
-        # 版式预算见 docs/PRD-网络检查页.md §5.2 —— 改动任何间距后必须重跑 tools/audit_netcheck.py）
+        # 版式预算见 internal/docs/PRD-网络检查页.md §5.2 —— 改动任何间距后必须重跑 tools/audit_netcheck.py）
         root.setContentsMargins(24, 16, 24, 10)
         root.setSpacing(9)
         # ---- 标题 + A 工具行（合并成一行，省纵向空间）----

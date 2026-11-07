@@ -4,7 +4,7 @@
 
 - **技术栈**：Python 3.13 + PySide6 (Qt6) + QSS 深色主题
 - **唯一运行依赖**：`PySide6`
-- **三页结构**：网络配置切换 / 局域网扫描 / Ping 工具
+- **四页结构**：网络配置切换 / 局域网扫描 / Ping 工具 / 网络检查
 
 ---
 
@@ -26,11 +26,17 @@ python main.py
 
 > ⚠️ **注意解释器**：`python` 必须是**已安装 PySide6** 的那个。
 > 若本机 PATH 里的 `python` 没装 PySide6，会报 `ModuleNotFoundError: No module named 'PySide6'`。
-> 此时请显式用已装依赖的解释器运行，或直接双击 `启动.bat`（脚本已内置该路径与回退逻辑）。
+> 此时有两种做法：
+> 1. 用虚拟环境（推荐）：建好 `.venv` 后，`启动.bat` 会自动优先使用它；
+> 2. 在 `启动.bat` 同级目录新建一个 **`python.path`** 文件，里面只写一行——你那个已装 PySide6 的
+>    `python.exe` 完整路径。该文件已被 `.gitignore` 忽略，不会随仓库发布。
+>
 > 装 PySide6 若官方源过慢，可用国内镜像：
 > `pip install PySide6 -i https://mirrors.aliyun.com/pypi/simple/`
 
-Windows 用户也可直接双击 **`启动.bat`**（自动切 UTF-8 代码页、锁定正确解释器并启动，失败时暂停显示错误）。
+`启动.bat` / `打包.bat` 的解释器查找顺序固定为：
+**`python.path` → `.venv\Scripts\python.exe` → PATH 里的 `python`**，
+并且会逐个实际 `import PySide6` 验证，只采用真正可用的那个；全都不行时打印处理指引。
 
 ---
 
@@ -73,8 +79,15 @@ python -m PyInstaller --noconfirm --clean NetTool.spec
 - 统计：发送 / 接收 / 丢失(丢包率) / 平均 / 最小 / 最大。
 - 常用地址快捷按钮（网关 / 8.8.8.8 / 114.114.114.114 / 本机）。
 
+### 页面四 · 网络检查
+- 本机网络信息（网卡 / 内网 IP / 网关 / 掩码）自动读取。
+- 公网 IPv4 / IPv6 实时获取；公网 IPv4 经四源交叉校验（国内 IP9、PCOnline；国际 Cloudflare、IPinfo.io），
+  结果按「国内 / 国际」分行展示，并标注归属地与运营商。
+- 常用站点连通性与延迟彩点条；站点图标三级回退（站点 favicon → 镜像 → 文字占位符）。
+- 右上角「重新检测」一键刷新，全部结果流式上屏、逐项落位。
+
 ### 快捷键
-- `Ctrl+1` / `Ctrl+2` / `Ctrl+3`：在三个页面间快速切换。
+- `Ctrl+1` ~ `Ctrl+4`：在四个页面间快速切换。
 - Ping 地址输入框支持回车直接执行。
 
 ---
@@ -87,6 +100,9 @@ C:\code\network\
 ├── requirements.txt         # 依赖声明（仅 PySide6）
 ├── NetTool.spec             # PyInstaller 打包配置
 ├── 启动.bat / 打包.bat       # 一键启动 / 打包脚本
+├── README.md / LICENSE      # 对外文档与开源协议
+├── .gitignore               # 忽略构建产物、缓存与 internal/
+├── python.path              # （本地自建，已忽略）可选，写一行解释器完整路径
 ├── app/
 │   ├── constants.py         # 全部常量、语义色板、netsh 关键词表
 │   ├── paths.py             # 统一路径（%APPDATA%\NetTool）
@@ -96,18 +112,25 @@ C:\code\network\
 │   ├── config_service.py    # 方案 CRUD + 原子写 + 生效比对
 │   ├── netsh_service.py     # netsh 命令构造与执行
 │   ├── elevation.py         # 提权（路径B）+ 子进程执行器
+│   ├── procutil.py          # 子进程静默执行（CREATE_NO_WINDOW）
 │   ├── scanner.py           # 线程池扫描 + 100ms 节流合批
 │   ├── ping_service.py      # ping 封装 + 日志 + 防堆积
+│   ├── netcheck_service.py  # 网络检查（公网 IP / 多源校验 / 站点连通性）
 │   └── ui/
 │       ├── styles.py        # QSS 模板 + 变量替换（build_qss）
 │       ├── widgets.py       # Toast / ResultBanner / ProfileCard / ChipButton
+│       ├── flow_row.py      # FlowRow 与控件宽度自适应
+│       ├── thread_bridge.py # 工作线程 → 主线程信号桥
 │       ├── scan_grid.py     # 自绘扫描网格 ScanGridWidget
 │       ├── sidebar.py       # 左侧导航
 │       ├── page_config.py   # 页面一
 │       ├── page_scan.py     # 页面二
 │       ├── page_ping.py     # 页面三
+│       ├── page_netcheck.py # 页面四
 │       └── main_window.py   # 主窗口
-└── docs/                    # PRD / 原型图 / 架构设计
+├── tests/                   # 单元测试 + GUI 冒烟测试
+├── tools/                   # 开发期辅助脚本（截图 / 几何探针 / 审计）
+└── internal/                # 内部资料：PRD / 架构 / 原型 / 测试记录（已 gitignore，不开源）
 ```
 
 ---
@@ -125,8 +148,15 @@ C:\code\network\
 
 | 问题 | 说明 |
 | --- | --- |
-| 双击 `启动.bat` 报 `ModuleNotFoundError: PySide6` | 说明 `启动.bat` 里的解释器路径在本机不存在且回退到了未装依赖的 `python`。请编辑 `启动.bat` 顶部 `NETTOOL_PY` 指向你已装 PySide6 的解释器。 |
+| 双击 `启动.bat` 提示 `No Python interpreter with PySide6 was found` | 三个候选（`python.path` / `.venv` / PATH 里的 `python`）都不可用。按脚本打印的指引任选一种：新建 `.venv`、或把依赖装进 PATH 的 `python`、或在脚本同级新建 `python.path` 写一行解释器完整路径。 |
 | 扫描结果全是红色（离线） | 目标网段无设备，或本机防火墙/网段选错；可降低并发重试。 |
 | 打开共享弹出空白窗口 | 目标主机未开放共享，属系统行为；状态栏会提前提示。 |
 | 切换方案失败 | 查看红色结果条中的 netsh 原始错误（如网卡名不存在 / 权限不足）。 |
 | 配置文件损坏 | 自动备份为 `profiles.json.bak` 并重建空配置。 |
+
+---
+
+## 7. 许可证
+
+本项目以 **MIT License** 开源，详见 [LICENSE](LICENSE)。
+

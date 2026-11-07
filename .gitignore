@@ -1,0 +1,28 @@
+# ---- 构建产物（不进仓库）----
+build/
+dist/
+*.pkg
+
+# ---- Python 缓存 ----
+__pycache__/
+*.py[cod]
+*.pyo
+
+# ---- 测试缓存与临时目录 ----
+.pytest_cache/
+.pytest_tmp/
+.tmptest*/
+
+# ---- 虚拟环境 ----
+.venv/
+venv/
+
+# ---- 本机解释器路径（每台机器不同，不进仓库；见 README §1）----
+python.path
+
+# ---- 内部资料：需求文档 / 架构设计 / 测试记录 / 个人笔记（永不开源）----
+internal/
+.workbuddy/
+
+# ---- 日志 ----
+*.log
