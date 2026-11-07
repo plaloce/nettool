@@ -117,7 +117,10 @@ def _run_gui() -> int:
 
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
-    app.setApplicationDisplayName(APP_NAME)
+    # ⚠️ 不要调用 setApplicationDisplayName()！
+    # Qt 会把 displayName 追加到每个窗口标题后面（形如 "… - NetTool"），
+    # 而我们的标题（APP_WINDOW_TITLE）里已经含有项目名 ⇒ 标题栏会出现两个
+    # "NetTool"（2026-11-08 用户实拍反馈）。窗口标题由 MainWindow 自己负责。
     app.setOrganizationName(APP_NAME)
     app.setApplicationVersion(APP_VERSION)
 

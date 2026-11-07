@@ -16,7 +16,6 @@ from app.constants import (
     APP_NAME,
     APP_TAGLINE,
     APP_TITLE,
-    APP_VERSION,
     SIDEBAR_WIDTH,
 )
 
@@ -79,12 +78,9 @@ class Sidebar(QFrame):
         root.addStretch(1)
         root.addWidget(self._hline())
 
-        # 版本号
-        version = QLabel(f"v{APP_VERSION}")
-        version.setObjectName("versionLabel")
-        root.addWidget(version)
-
         # 权限徽标
+        # 版本号已移到窗口标题栏（`APP_WINDOW_TITLE`）—— 两处都显示属于重复，
+        # 2026-11-08 用户要求去掉左下角这份。
         self._perm_badge = QLabel("🛡 普通权限 · 按需提权")
         self._perm_badge.setObjectName("permBadge")
         self._perm_badge.setWordWrap(True)

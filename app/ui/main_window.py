@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from PySide6.QtGui import QCloseEvent, QKeySequence, QShortcut
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QCloseEvent, QDesktopServices, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -14,8 +15,9 @@ from PySide6.QtWidgets import (
 
 from app.config_service import ConfigService
 from app.constants import (
-    APP_TITLE,
+    APP_WINDOW_TITLE,
     PALETTE,
+    PROJECT_URL,
     STATUS_LEVEL_COLORS,
     WINDOW_DEFAULT_H,
     WINDOW_DEFAULT_W,
@@ -37,7 +39,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle(APP_TITLE)
+        self.setWindowTitle(APP_WINDOW_TITLE)
         self.resize(WINDOW_DEFAULT_W, WINDOW_DEFAULT_H)
         self.setMinimumSize(WINDOW_MIN_W, WINDOW_MIN_H)
 
@@ -95,6 +97,21 @@ class MainWindow(QMainWindow):
 
         self._status_label = QLabel("就绪")
         self._status_bar.addWidget(self._status_label)
+
+        # 右下角：项目主页链接（永久部件，不会被临时消息冲掉）。
+        # 用 linkActivated + 自己调 QDesktopServices，而不是 setOpenExternalLinks(True)：
+        # 后者由 C++ 内部直接开浏览器，Python 侧无法拦截，测试也就证明不了"点得开"。
+        self._github_link = QLabel()
+        self._github_link.setObjectName("githubLink")
+        self._github_link.setTextFormat(Qt.TextFormat.RichText)
+        self._github_link.setText(
+            f'<a href="{PROJECT_URL}" style="color:{PALETTE["info"]}; '
+            f'text-decoration:none;">GitHub 项目</a>'
+        )
+        self._github_link.setToolTip(PROJECT_URL)
+        self._github_link.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._github_link.linkActivated.connect(self._open_project_page)
+        self._status_bar.addPermanentWidget(self._github_link)
 
         # 权限状态只在**左侧栏**显示（`#permBadge`）—— 那里还能表达"普通权限 · 按需提权"，
         # 信息量比状态栏的裸"已提权"更大。状态栏也曾放一个，但两者内容重复，
@@ -160,6 +177,10 @@ class MainWindow(QMainWindow):
         color = PALETTE.get(color_key, PALETTE["text_secondary"])
         self._status_label.setText(text)
         self._status_label.setStyleSheet(f"color: {color};")
+
+    def _open_project_page(self, url: str | None = None) -> None:
+        """状态栏「GitHub 项目」被点击 → 用系统默认浏览器打开项目主页。"""
+        QDesktopServices.openUrl(QUrl(url or PROJECT_URL))
 
     # ------------------------------------------------------------------ #
     # 权限徽标

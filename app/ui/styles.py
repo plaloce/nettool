@@ -5,7 +5,8 @@ QSS 不支持 CSS 变量，故用 `string.Template` + `constants.PALETTE` 做占
 - `build_qss()` 是运行时唯一 QSS 来源（避免「改了 qss 没改 py」的漂移）。
 
 objectName 清单（与代码中 setObjectName 一一对应，务必保持同步）：
-    sidebar, brandTitle, versionLabel, permBadge,
+    sidebar, brandTitle, brandSub, permBadge,
+    githubLink,
     navBtn, pageTitle, card, controlBar,
     primaryBtn, ghostBtn, dangerBtn, iconBtn, dashedBtn, chipBtn, openShareBtn,
     profileCard, cardTitle, cardIp, cardMeta, activeTag, lastAppliedDot,
@@ -48,9 +49,11 @@ QToolTip {
 }
 #brandTitle { color: $text_primary; font-size: 18px; font-weight: 600; }
 #brandSub { color: $text_secondary; font-size: 11px; min-height: 15px; }
-#versionLabel { color: $text_secondary; font-size: 12px; }
 #permBadge { color: $text_secondary; font-size: 12px; }
 #permBadge[elevated="true"] { color: $success; }
+/* 状态栏右下角的项目主页链接：链接色由内联 style 决定（富文本链接不吃 QSS color），
+   这里只锁字号与右侧留白，避免贴着窗口边缘和尺寸手柄 */
+#githubLink { font-size: 12px; padding-right: 4px; }
 
 QPushButton#navBtn {
     background: transparent;

@@ -11,8 +11,16 @@ APP_NAME: str = "NetTool"
 # 副标题（tagline）：对外唯一的定位描述，窗口标题 / 侧栏 / README / exe 属性
 # 全部由它派生，改文案只改这一行（守卫 tests/test_naming.py 锁死一致性）。
 APP_TAGLINE: str = "网络配置切换与连通性诊断"
-APP_VERSION: str = "1.2"
+APP_VERSION: str = "1.2.1"
 APP_TITLE: str = f"{APP_NAME} · {APP_TAGLINE}"
+# 窗口标题栏：名字 + 副标题 + 版本号。
+# ⚠️ Qt 会在这个标题后面再追加 `applicationDisplayName`（形如 " - NetTool"），
+#    所以 main.py **故意不调用** setApplicationDisplayName —— 否则标题栏会出现
+#    两个 "NetTool"（2026-11-08 用户实拍反馈）。
+APP_WINDOW_TITLE: str = f"{APP_TITLE} v{APP_VERSION}"
+
+# 项目主页（状态栏「GitHub 项目」链接 + README 徽标共用同一个地址）
+PROJECT_URL: str = "https://github.com/plaloce/nettool"
 
 # 主窗口默认/最小尺寸
 WINDOW_DEFAULT_W: int = 1100
